@@ -1,0 +1,121 @@
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+entity COUNTER_MOORE is
+  port(
+    CLK : in std_logic; -- Clock input of the FSM
+    RSTN : in std_logic; -- Active low reset input of the FSM
+    A : in std_logic_vector(2 downto 0); -- Control inputs of the FSM
+    Y : out std_logic_vector(1 downto 0); -- Outputs of the FSM
+    Q : out std_logic_vector(3 downto 0) -- State of the FSM
+  );
+end COUNTER_MOORE;
+
+architecture Behavioral of COUNTER_MOORE is
+  type state_type is (s0, s1, s2, s3, s4, s5, s6, s7, s8, s9);
+  signal current_state, next_state : state_type;
+begin
+  process (CLK, RSTN)
+  begin
+    if (RSTN = '0') then -- Reset the FSM to the initial state of 0000
+      current_state <= s0;
+      Q <= "0000";
+    elsif (rising_edge(CLK)) then -- On every rising edge of the clock
+      current_state <= next_state;
+      case current_state is
+        when s0 =>
+          if (A = "011") then -- a0a2 = 11: the counter counts up the even numbers between 0 and 9 cyclically.
+            next_state <= s2;
+          elsif (A = "101") then -- a1a2 = 11: the counter counts up the odd numbers between 0 and 9 cyclically.
+            next_state <= s1;
+          elsif (A = "010") then -- a0a2 = 10: the counter counts down the even numbers between 0 and 9 cyclically.
+            next_state <= s8;
+          elsif (A = "100") then -- a1a2 = 10: the counter counts down the odd numbers between 0 and 9 cyclically.
+            next_state <= s9;
+          else -- For all other input combinations the counter works as a cyclic BCD up counter when a2 = 1 and as a cyclic BCD down counter when a2 = 0.
+            next_state <= s0;
+          end if;
+        when s1 =>
+          if (A = "011") then
+            next_state <= s3;
+          else
+            next_state <= s1;
+          end if;
+        when s2 =>
+          if (A = "011") then
+            next_state <= s4;
+          else
+            next_state <= s2;
+          end if;
+        when s3 =>
+          if (A = "011") then
+            next_state <= s5;
+          else
+            next_state <= s3;
+          end if;
+        when s4 =>
+          if (A = "011") then
+            next_state <= s6;
+          else
+            next_state <= s4;
+          end if;
+        when s5 =>
+          if (A = "011") then
+            next_state <= s7;
+          else
+            next_state <= s5;
+          end if;
+        when s6 =>
+          if (A = "011") then
+            next_state <= s8;
+          else
+            next_state <= s6;
+          end if;
+        when s7 =>
+          if (A = "011") then
+            next_state <= s9;
+          else
+            next_state <= s7;
+          end if;
+        when s8 =>
+          if (A = "010") then
+            next_state <= s6;
+          else
+            next_state <= s8;
+          end if;
+        when s9 =>
+          if (A = "100") then
+            next_state <= s7;
+          else
+            next_state <= s9;
+          end if;
+      end case;
+    end if;
+  end process;
+
+  -- Output logic
+  process (current_state)
+  begin
+    case current_state is
+      when s0 =>
+        Y <= "00";
+      when s1 =>
+        Y <= "01";
+      when s2 =>
+        Y <= "00";
+      when s3 =>
+        Y <= "01";
+      when s4 =>
+        Y <= "00";
+      when s5 =>
+        Y <= "01";
+      when s6 =>
+        Y <= "00";
+      when s7 =>
+        Y <= "01";
+      when s8 =>
+        Y <= "00";
+      when s9 =>
+        Y <= "01";
+    end case;
+  end process;
+end Behavioral;
